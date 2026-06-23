@@ -214,3 +214,7 @@ The primary error pattern observed in the fine-tuned model's predictions is a **
 **Conclusion:**
 
 This pattern suggests that the model has developed a strong association between **any mention of chess-related entities (players, openings, historical events) and the `sports-news` label**, irrespective of the actual intent or nature of the content (e.g., instructional, historical anecdote, discussion). It struggles to grasp the nuanced distinction between a report of a current event (true sports news) and a discussion, historical reflection, or request for education within the domain of chess.
+
+## Deployed Interface
+
+Exists in the notebook and user has to replace the test text in the notebook. 
