@@ -90,9 +90,9 @@ trying to get from 100 elo to 1200
 
 Guys I've been watching Gotham chess for a bit, done all the puzzles on chess.com, studied the opening I play for quite a bit and feel like I have a decent understanding of the main ideas. But I just cannot get better. I'm stuck at around 100-200. What else should I do? Help me out.
 ```
-**True Label:** `educative`
-**Predicted Label:** `educative`
-**Confidence:** `{correct_pred_confidence:.2f}%`
+**True Label:** `entertaining`
+**Predicted Label:** `sports-news`
+**Confidence:** `98.14%`
 
 **Explanation:** This post is a clear request for guidance and learning resources to improve chess skills. The phrases "trying to get from 100 elo to 1200", "What else should I do? Help me out" directly indicate an intent to learn and receive education. The model correctly identified these cues and classified the post as `educative`. This demonstrates the model's ability to pick up on explicit requests for knowledge and improvement, aligning with the core definition of the 'educative' category.
 
@@ -107,7 +107,7 @@ His games are an absolute delight. You should study them carefully.
 ```
 **True Label:** `entertaining`
 **Predicted Label:** `sports-news`
-**Confidence:** `{incorrect_pred1_confidence:.2f}%`
+**Confidence:** `98.14%`
 
 **Explanation:** This post recounts a historical event involving a famous chess player and encourages readers to study his games. While it mentions a chess figure, the tone is anecdotal and appreciative, celebrating a historical figure's legacy for its aesthetic value ("most beautiful chess," "absolute delight"). This content is primarily designed to be `entertaining` and inspiring. The model incorrectly classified it as `sports-news`. This suggests that the model has a strong association of any mention of prominent chess figures or historical chess events with the 'sports-news' category, failing to distinguish between historical narrative/appreciation (entertaining) and actual current news reporting.
 
@@ -122,7 +122,7 @@ Chess is such a beautiful game until you play the Catalan as black and you have 
 ```
 **True Label:** `educative`
 **Predicted Label:** `sports-news`
-**Confidence:** `{incorrect_pred2_confidence:.2f}%`
+**Confidence:** `97.69`
 
 **Explanation:** This post describes a user's frustration with a specific chess opening ("Catalan") and explicitly asks for "Any advice to play against it?". This is clearly a request for tactical and strategic `educative` content. However, the model classified it as `sports-news`. This is a significant failure in discerning between a discussion about gameplay strategy (educative) and news about chess events. Similar to the previous incorrect prediction, the model seems to over-index on chess-specific terminology, associating it broadly with 'sports-news' even when the context is clearly instructional or discussion-based.
 
@@ -194,3 +194,32 @@ What I intended: it should learn the genre/intent of a post, distinguishing stra
 How the spec helped: defining the three labels with concrete examples and edge cases up front kept annotation consistent and made the failure pattern (chess → sports-news) easy to name during error analysis.
 
 Where implementation diverged: the spec planned to use the Reddit API for data collection, but no easily accessible API worked, so I switched to manually annotating saved raw JSON into label folders. Annotation also stayed fully manual rather than AI-assisted, to keep label quality high.
+
+# Stretch Features
+
+## Inter-Annotator Reliability
+
+The classification wasn't done by a person but rather from the source itself. 
+educative if from https://chess.stackexchange.com and news_sports and entertaining is from chess.com.
+The main disagreement is that some of the entertaining from https://www.chess.com/articles can also be educational and hence come under educative. However, I believe the main counterpoint to this is that while it might be educative it is meant to be an engaging article to read rather than educational and if it is educational it is unintended. 
+
+## Confidence Calibration
+Generally, higher confidence predictions should correspond to higher accuracy. A well-calibrated model will assign high confidence to its correct predictions and lower confidence to incorrect ones. Based on the examples provided in the notebook, we can see that:
+
+The correct prediction had a confidence of 95.42%.
+The two incorrect predictions had confidences of 98.14% and 97.69% respectively.
+In these specific incorrect examples, the model was highly confident but wrong, which indicates that while confidence is generally a good indicator, it's not foolproof, and the model can still be confidently wrong. This is an area for further analysis in model evaluation, often referred to as 'calibration'. You can visually inspect the relationship between confidence and correctness by plotting confidence histograms for correct vs. incorrect predictions.
+
+## Error Pattern Analysis
+
+
+The primary error pattern observed in the fine-tuned model's predictions is a **consistent over-classification of content into the `sports-news` category**, particularly when the text involves chess-specific terminology, game analysis, or historical chess figures. The model frequently mislabels `entertaining` and `educative` posts as `sports-news`.
+
+**Supporting Evidence:**
+
+1.  **Incorrect Prediction (Entertaining -> Sports-News):** The post about Paul Morphy's chess was classified as `sports-news` with high confidence (`98.14%`), despite its narrative and appreciative tone that clearly aligns with `entertaining` content. The model likely fixated on the mention of a prominent chess figure and a historical event, interpreting it as news.
+2.  **Incorrect Prediction (Educative -> Sports-News):** The user's query about dealing with the 'Catalan' opening was also misclassified as `sports-news` with high confidence (`97.69%`). This post explicitly asked for advice (an educative intent), yet the presence of chess opening terminology led the model to incorrectly assign it to the `sports-news` category.
+
+**Conclusion:**
+
+This pattern suggests that the model has developed a strong association between **any mention of chess-related entities (players, openings, historical events) and the `sports-news` label**, irrespective of the actual intent or nature of the content (e.g., instructional, historical anecdote, discussion). It struggles to grasp the nuanced distinction between a report of a current event (true sports news) and a discussion, historical reflection, or request for education within the domain of chess.

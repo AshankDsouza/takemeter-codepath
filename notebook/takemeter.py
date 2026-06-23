@@ -353,3 +353,169 @@ from google.colab import files
 
 # Download the evaluation results JSON file
 files.download('evaluation_results.json')
+
+import torch.nn.functional as F
+import numpy as np
+from scipy.special import softmax
+
+# Logits are in predictions_output.predictions
+logits = predictions_output.predictions
+
+# Convert logits to probabilities using softmax
+probabilities = softmax(logits, axis=1)
+
+print("Fine-tuned Model Predictions with Confidence (Test Set):\n")
+
+# Iterate through the test set predictions
+for i in range(len(test_dataset)):
+    text_content = X_test.iloc[i]
+    original_index = X_test.index[i]
+    true_label_idx = true_labels[i]
+    predicted_label_idx = predictions[i]
+    confidence = probabilities[i, predicted_label_idx] * 100 # Percentage
+
+    true_label_name = idx_to_label[true_label_idx]
+    predicted_label_name = idx_to_label[predicted_label_idx]
+
+    print(f"-- Post {i+1} (Original Dataset Index: {original_index}) --")
+    print(f"Text:\n{text_content}\n")
+    print(f"True Label: {true_label_name}")
+    print(f"Predicted Label: {predicted_label_name}")
+    print(f"Confidence: {confidence:.2f}%\n")
+
+# Store specific examples for narration in markdown
+# Example 1: Correct Prediction (educative)
+correct_pred_text = X_test.iloc[0]
+correct_pred_true_label = idx_to_label[true_labels[0]]
+correct_pred_predicted_label = idx_to_label[predictions[0]]
+correct_pred_confidence = probabilities[0, predictions[0]] * 100
+
+# Example 2: Incorrect Prediction (entertaining -> sports-news)
+incorrect_pred1_text = X_test.iloc[2] # original index 27
+incorrect_pred1_true_label = idx_to_label[true_labels[2]]
+incorrect_pred1_predicted_label = idx_to_label[predictions[2]]
+incorrect_pred1_confidence = probabilities[2, predictions[2]] * 100
+
+# Example 3: Incorrect Prediction (educative -> sports-news)
+incorrect_pred2_text = X_test.iloc[3] # original index 17
+incorrect_pred2_true_label = idx_to_label[true_labels[3]]
+incorrect_pred2_predicted_label = idx_to_label[predictions[3]]
+incorrect_pred2_confidence = probabilities[3, predictions[3]] * 100
+
+"""### Analysis of Fine-Tuned Model Predictions
+
+#### 1. Correct Prediction
+
+**Original Index:** `20`
+**Text:**
+```
+trying to get from 100 elo to 1200
+
+Guys I've been watching Gotham chess for a bit, done all the puzzles on chess.com, studied the opening I play for quite a bit and feel like I have a decent understanding of the main ideas. But I just cannot get better. I'm stuck at around 100-200. What else should I do? Help me out.
+```
+**True Label:** `educative`
+**Predicted Label:** `educative`
+**Confidence:** `95.42%`
+
+**Explanation:** This post is a clear request for guidance and learning resources to improve chess skills. The phrases "trying to get from 100 elo to 1200", "What else should I do? Help me out" directly indicate an intent to learn and receive education. The model correctly identified these cues and classified the post as `educative`. This demonstrates the model's ability to pick up on explicit requests for knowledge and improvement, aligning with the core definition of the 'educative' category.
+
+#### 2. Incorrect Prediction
+
+**Original Index:** `27`
+**Text:**
+```
+168 years ago today, Paul Morphy arrived in Europe and began to play the most beautiful chess ever seen.
+
+His games are an absolute delight. You should study them carefully.
+```
+**True Label:** `entertaining`
+**Predicted Label:** `sports-news`
+**Confidence:** `98.14%`
+
+**Explanation:** This post recounts a historical event involving a famous chess player and encourages readers to study his games. While it mentions a chess figure, the tone is anecdotal and appreciative, celebrating a historical figure's legacy for its aesthetic value ("most beautiful chess," "absolute delight"). This content is primarily designed to be `entertaining` and inspiring. The model incorrectly classified it as `sports-news`. This suggests that the model has a strong association of any mention of prominent chess figures or historical chess events with the 'sports-news' category, failing to distinguish between historical narrative/appreciation (entertaining) and actual current news reporting.
+
+#### 3. Another Incorrect Prediction
+
+**Original Index:** `17`
+**Text:**
+```
+Venting about the Catalan
+
+Chess is such a beautiful game until you play the Catalan as black and you have to defend forever (or you blunder and lose in 20 moves). It's so hard to play. Any advice to play against it? (I'm a 1000 elo player)
+```
+**True Label:** `educative`
+**Predicted Label:** `sports-news`
+**Confidence:** `97.69%`
+
+**Explanation:** This post describes a user's frustration with a specific chess opening ("Catalan") and explicitly asks for "Any advice to play against it?". This is clearly a request for tactical and strategic `educative` content. However, the model classified it as `sports-news`. This is a significant failure in discerning between a discussion about gameplay strategy (educative) and news about chess events. Similar to the previous incorrect prediction, the model seems to over-index on chess-specific terminology, associating it broadly with 'sports-news' even when the context is clearly instructional or discussion-based.
+"""
+
+print(f"Correct Prediction Confidence: {correct_pred_confidence:.2f}%")
+print(f"Incorrect Prediction 1 Confidence: {incorrect_pred1_confidence:.2f}%")
+print(f"Incorrect Prediction 2 Confidence: {incorrect_pred2_confidence:.2f}%")
+
+"""## Error Pattern Analysis
+
+The primary error pattern observed in the fine-tuned model's predictions is a **consistent over-classification of content into the `sports-news` category**, particularly when the text involves chess-specific terminology, game analysis, or historical chess figures. The model frequently mislabels `entertaining` and `educative` posts as `sports-news`.
+
+**Supporting Evidence:**
+
+1.  **Incorrect Prediction (Entertaining -> Sports-News):** The post about Paul Morphy's chess was classified as `sports-news` with high confidence (`98.14%`), despite its narrative and appreciative tone that clearly aligns with `entertaining` content. The model likely fixated on the mention of a prominent chess figure and a historical event, interpreting it as news.
+2.  **Incorrect Prediction (Educative -> Sports-News):** The user's query about dealing with the 'Catalan' opening was also misclassified as `sports-news` with high confidence (`97.69%`). This post explicitly asked for advice (an educative intent), yet the presence of chess opening terminology led the model to incorrectly assign it to the `sports-news` category.
+
+**Conclusion:**
+
+This pattern suggests that the model has developed a strong association between **any mention of chess-related entities (players, openings, historical events) and the `sports-news` label**, irrespective of the actual intent or nature of the content (e.g., instructional, historical anecdote, discussion). It struggles to grasp the nuanced distinction between a report of a current event (true sports news) and a discussion, historical reflection, or request for education within the domain of chess.
+"""
+
+class SingleTextClassificationDataset(Dataset):
+    def __init__(self, encodings):
+        self.encodings = encodings
+
+    def __getitem__(self, idx):
+        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        return item
+
+    def __len__(self):
+        return len(self.encodings.input_ids)
+
+def classify_new_post(post_text):
+    # Tokenize the input text
+    tokenized_input = tokenizer(post_text, truncation=True, padding=True, return_tensors="pt")
+
+    # Create a dataset object for the single input
+    single_dataset = SingleTextClassificationDataset(tokenized_input)
+
+    # Make prediction using the trained trainer
+    prediction_output = trainer.predict(single_dataset)
+
+    # Get logits and convert to probabilities
+    logits = prediction_output.predictions[0] # [0] because it's a single prediction
+    probabilities = softmax(logits)
+
+    # Get predicted label index and confidence
+    predicted_label_idx = np.argmax(probabilities)
+    confidence = probabilities[predicted_label_idx] * 100
+
+    # Convert index back to label name
+    idx_to_label = {v: k for k, v in label_map.items()}
+    predicted_label_name = idx_to_label[predicted_label_idx]
+
+    print(f"Predicted Label: {predicted_label_name}")
+    print(f"Confidence: {confidence:.2f}%")
+
+"""### Example Usage of the New Post Classifier"""
+
+# Example 1: Educative Post
+print("Classifying 'How to get better at chess openings?':")
+classify_new_post("How to get better at chess openings? I always struggle in the first moves.")
+print("\n---\n")
+
+# Example 2: Sports News Post
+print("Classifying 'Carlsen wins Norway Chess 2024':")
+classify_new_post("Magnus Carlsen just won Norway Chess 2024 after a thrilling final round!")
+print("\n---\n")
+
+# Example 3: Entertaining Post
+print("Classifying 'A funny story about my last game':")
+classify_new_post("I played the funniest game of my life yesterday. My opponent blundered their queen on move 5!")
