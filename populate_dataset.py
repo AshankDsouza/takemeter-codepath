@@ -32,6 +32,75 @@ CATEGORY_LABELS = {
 }
 
 
+def validate_json_file(path):
+    """Validate that a .json file has the expected Reddit listing structure.
+
+    Expected: a list of at least 1 element where:
+      - element [0] has data.children[0].data (the post, kind t3)
+      - element [1] (if present) has data.children (the comments listing)
+
+    Returns (True, None) on success or (False, reason_string) on failure.
+    """
+    if not path.endswith(".json"):
+        return False, "not a .json file"
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        return False, f"could not parse JSON: {e}"
+
+    if not isinstance(data, list) or len(data) < 1:
+        return False, "top-level value must be a non-empty list"
+
+    post_listing = data[0]
+    if not isinstance(post_listing, dict):
+        return False, "element [0] must be a dict"
+    if "data" not in post_listing or not isinstance(post_listing["data"], dict):
+        return False, "element [0] missing 'data' dict"
+    children = post_listing["data"].get("children")
+    if not isinstance(children, list) or len(children) < 1:
+        return False, "element [0].data.children must be a non-empty list"
+    if not isinstance(children[0], dict) or "data" not in children[0]:
+        return False, "element [0].data.children[0] must be a dict with 'data'"
+
+    if len(data) > 1:
+        comment_listing = data[1]
+        if not isinstance(comment_listing, dict):
+            return False, "element [1] must be a dict"
+        if "data" not in comment_listing or not isinstance(comment_listing["data"], dict):
+            return False, "element [1] missing 'data' dict"
+        if not isinstance(comment_listing["data"].get("children"), list):
+            return False, "element [1].data.children must be a list"
+
+    return True, None
+
+
+def validate_data_dir(data_dir=DATA_DIR):
+    """Validate all .json files under data_dir subfolders.
+
+    Prints a per-file pass/fail report and returns True if every file is valid,
+    False otherwise.
+    """
+    all_valid = True
+    json_files = sorted(glob.glob(os.path.join(data_dir, "**", "*.json"), recursive=True))
+
+    if not json_files:
+        print(f"No .json files found under {data_dir}")
+        return False
+
+    for path in json_files:
+        ok, reason = validate_json_file(path)
+        rel = os.path.relpath(path, data_dir)
+        if ok:
+            print(f"  OK  {rel}")
+        else:
+            print(f"FAIL  {rel}: {reason}")
+            all_valid = False
+
+    return all_valid
+
+
 def extract_post(listing):
     """Return (title, selftext, permalink) from the post listing element."""
     post = listing["data"]["children"][0]["data"]
@@ -104,4 +173,5 @@ def main():
 
 
 if __name__ == "__main__":
+    validate_data_dir()
     main()

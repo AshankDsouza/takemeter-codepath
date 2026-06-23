@@ -76,7 +76,6 @@ If there is a doubt about the json format examine one file and figure its format
 
 Also make sure that the script errors out if there is a not a minimum of 10 files for each category. 
 
-
 2. Fill in the columns for each category:
     i. text: the url heading, post and top three comments
     ii. label: keep this as: 
@@ -85,6 +84,34 @@ Also make sure that the script errors out if there is a not a minimum of 10 file
           All files in data/entertaining = entertaining
     iii. notes: keep this empty for now
     iv. url: fill this with the url of the link
+
+
+## Automatic raw data generation. 
+Use the the data_creation.py to generate the raw data and create files 
+
+To generate sports_news data do this:
+
+1. Make calls to https://www.chess.com/news?page=<pageNumber> where we will loop from page no. 1 to 50
+2. In the server side rendered response you will see a list of <article>. Iterate through all of them and make calls to the url of the news article. The format of the tag will be something like:
+
+    <article class="post-preview-component">
+        
+                <h2 class="post-preview-titlecontainer">
+                  
+                  
+                  <a
+                    class="post-preview-title"
+                    href="https://www.chess.com/news/view/hikaru-nakamura-wins-bullet-brawl-february-1-2025">
+
+                    King Of Bullet Brawl Returns To Win 35th Title
+                  </a>
+                </h2>
+
+    </article>
+
+3. You are to collect the href of each article and make an api call to it and collect the raw data for each article in format that populate_dataset.py script expects it in. Make a new file for each article and also place it in /data/sports_news folder under a random name with file extention as .json. 
+
+4. each individual article will have the post content(main post) under the <div class="post-view-content"> tag. you can keep the comments as empty string since it is not a social media site and comments are not really informative. 
 
 
 # Data Collection Plan & Evaluation Metrics
