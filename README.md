@@ -8,7 +8,7 @@ This is given in planning.md under Labeling
 The dataset can be found in the root directory and it is the file takemeter_dataset.csv
 
 Label distribution(class split):
-40 rows written — sports-news: 13, educative: 12, entertaining: 15.
+1240 rows written — sports-news: 241, educative: 758, entertaining: 241.
 
 Data source: reddit subreddit /r/chess
 Labelling process: labeling was done manually and each label is kept in a separate folder inside the /data folder to help the script that creates the dataset. 

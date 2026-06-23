@@ -89,7 +89,7 @@ Also make sure that the script errors out if there is a not a minimum of 10 file
 ## Automatic raw data generation. 
 Use the the data_creation.py to generate the raw data and create files 
 
-To generate sports_news data do this:
+### To generate sports_news data do this:
 
 1. Make calls to https://www.chess.com/news?page=<pageNumber> where we will loop from page no. 1 to 50
 2. In the server side rendered response you will see a list of <article>. Iterate through all of them and make calls to the url of the news article. The format of the tag will be something like:
@@ -112,6 +112,56 @@ To generate sports_news data do this:
 3. You are to collect the href of each article and make an api call to it and collect the raw data for each article in format that populate_dataset.py script expects it in. Make a new file for each article and also place it in /data/sports_news folder under a random name with file extention as .json. 
 
 4. each individual article will have the post content(main post) under the <div class="post-view-content"> tag. you can keep the comments as empty string since it is not a social media site and comments are not really informative. 
+
+### To generate the entertaining data we do this:
+Do the same as above(reuse the same code just change the link to one below to access articles instead of news )
+https://www.chess.com/articles?page=<pageNumber> 
+
+
+### To generate the educative data we do this:
+
+
+1. Make calls to https://chess.stackexchange.com/questions?tab=newest&page=<pageNumber> where we will loop from page no. 1 to 50
+2. In the server side rendered response you will see a list of <div class="s-post-summary--content">. Iterate through all of them and make calls to the url of the news article. The format of the tag will be something like:
+
+<div class="s-post-summary--content">
+        
+            <h3 class="s-post-summary--content-title">
+            
+                <a href="/questions/47905/king-and-nightrider-cannot-force-checkmate-against-a-lone-king-but-can-they-for" class="s-link" itemprop="url"><span itemprop="name">King and nightrider cannot force checkmate against a lone king. But can they force stalemate?</span></a>
+            </h3>
+
+</div class="s-post-summary--content">
+
+3. You are to collect the href of each article (can found in <h3 class="s-post-summary--content-title"> shown above) and make an api call to it and collect the raw data for each article in format that populate_dataset.py script expects it in. Make a new file for each article and also place it in /data/sports_news folder under a random name with file extention as .json. 
+
+4. 
+a.
+each individual article will have the title under:
+        <title>How many same-colored bishops does it take to force stalemate against a lone king? - Chess Stack Exchange
+        </title>
+
+b.
+each individual article will have the post content(main post) under the   <div class="postcell post-layout--right">
+                                        <div class="s-prose js-post-body" itemprop="text">
+                                            <p>King and bishop cannot force checkmate against a lone king. But can king and bishop force stalemate against a lone king? If the answer is no, then can king and two same-colored bishops force stalemate against a lone king? If the answer is still no, then what about three? Four? Five? Etc. How many same-colored bishops does it take to force stalemate against a lone king?</p>
+                                            <p>Obviously we have to ignore the fact that the game would instantly end in a draw by insufficient material. So let's say that stalemate is a win instead of a draw.</p>
+                                            <p>In practice, no one will ever get two same-colored bishops in a real game, let alone three or four. But we could reach this endgame (king and multiple same-colored bishops versus king) in a variant where each player starts with more than two bishops.</p>
+                                        </div>
+                                        
+                                        
+                                        
+                                        tag. you can keep the comments as empty string since it is not a social media site and comments are not really informative. 
+
+</div>
+</div>
+
+c. each individual answer(which will regard as equivalent to reddit's comments) will be found in:
+<div class="answercell post-layout--right">
+        <div class="s-prose js-post-body" itemprop="text">
+        <p>I got chatgpt to...</p>
+</div>
+
 
 
 # Data Collection Plan & Evaluation Metrics
