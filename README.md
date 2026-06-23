@@ -36,15 +36,14 @@ Overall Accuracy (Fine-tuned model): 0.9570
 
 Classification Report (Fine-tuned model):
 
-              precision    recall  f1-score   support
-
-   educative       0.99      0.98      0.99       114
-entertaining       0.83      0.97      0.90        36
- sports-news       1.00      0.86      0.93        36
-
-    accuracy                           0.96       186
-   macro avg       0.94      0.94      0.94       186
-weighted avg       0.96      0.96      0.96       186
+| Class        | Precision | Recall | F1-Score | Support |
+|--------------|-----------|--------|----------|---------|
+| educative    | 0.99      | 0.98   | 0.99     | 114     |
+| entertaining | 0.83      | 0.97   | 0.90     | 36      |
+| sports-news  | 1.00      | 0.86   | 0.93     | 36      |
+| **accuracy** |           |        | **0.96** | **186** |
+| macro avg    | 0.94      | 0.94   | 0.94     | 186     |
+| weighted avg | 0.96      | 0.96   | 0.96     | 186     |
 
 ![Confusion Matrix (Fine-tuned Model)](result.png)
 
