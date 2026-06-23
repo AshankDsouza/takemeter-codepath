@@ -27,9 +27,6 @@ Number of Epochs (num_train_epochs=3): This value is a common starting point for
 
 # Results (Evaluation Report and Error Analysis):
 
-first run accuracy metrics:
-sample size:
-40 rows written — sports-news: 13, educative: 12, entertaining: 15.
 
 Evaluating fine-tuned model on the test set...
 Overall Accuracy (Fine-tuned model): 0.9570
@@ -124,7 +121,7 @@ Chess is such a beautiful game until you play the Catalan as black and you have 
 # Improvements:
 
 steps taken to improve the metrics:
-1. get training data set to 210 rows
+1. get training data set to over 210  -done
 2. make sure no class imballance or no significant class imballance exists
 3. synthetically generate 15% more data
 4. add more crucial data from the reddit raw json
